@@ -5,9 +5,10 @@ license: MIT
 modules:
   - instaloader
   - socialmediadownload
+main_class: socialmediadownload/SocialMediaDownloadPlugin
+dependencies:
   - yt-dlp
   - hurry.filesize
-main_class: socialmediadownload/SocialMediaDownloadPlugin
 database: false
 config: true
 extra_files:
