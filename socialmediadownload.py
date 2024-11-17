@@ -8,6 +8,7 @@ import requests
 import asyncio
 import concurrent.futures
 import yt_dlp
+import hurry.filesize
 
 
 from typing import Type
@@ -17,6 +18,7 @@ from mautrix.types.event.message import BaseFileInfo, Format, TextMessageEventCo
 from mautrix.util.config import BaseProxyConfig, ConfigUpdateHelper
 from maubot import Plugin, MessageEvent
 from maubot.handlers import event
+from hurry.filesize import size
 
 class Config(BaseProxyConfig):
     def do_update(self, helper: ConfigUpdateHelper) -> None:
@@ -184,14 +186,14 @@ class SocialMediaDownloadPlugin(Plugin):
                 # Get name from video file
                 filename = ydl.prepare_filename(info_dict)
 
-                # Get size video file
+                # Get size of the video file in bytes and human
                 file_size_b = os.path.getsize(filename)
-                file_size_mb = round(file_size_b / (1024 * 1024), 2)
+                file_size_h = size(file_size_b)
 
-                # Send to Matrix room
+                # Send video file to Matrix room
                 await self.client.room_send(
                     evt.room_id,
-                    info=BaseFileInfo(mimetype='video/mp4', file_name=filename, size=len({file_size_mb} Mb), file_type=MessageType.VIDEO)
+                    info=BaseFileInfo(mimetype='video/mp4', file_name=filename, size=file_size_h, file_type=MessageType.VIDEO)
                 )
                 # Remove temp video file
                 os.remove(filename)
