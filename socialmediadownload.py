@@ -7,6 +7,7 @@ import yarl
 import requests
 import asyncio
 import concurrent.futures
+import yt_dlp
 
 
 from typing import Type
@@ -167,6 +168,22 @@ class SocialMediaDownloadPlugin(Plugin):
         response_text = await response.read()
         data = json.loads(response_text.decode())
 
+        if self.config["youtube.video"]:
+            try:
+                with yt_dlp.YoutubeDL() as ydl:
+                    info_dict = ydl.extract_info(url_tup, download=True)
+                    filename = ydl.prepare_filename(info_dict)
+
+                    # Send to Matrix room
+                    await self.client.room_send(
+                        evt.room.room_id,
+                        "m.file",
+                        {"body": "Downloaded video"},
+                        {"file": filename}
+                    )
+            except Exception as e:
+                await evt.reply(f"Error while loading: {e}")
+        
         if self.config["youtube.info"]:
             await evt.reply(data['title'])
 
