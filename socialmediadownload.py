@@ -186,20 +186,18 @@ class SocialMediaDownloadPlugin(Plugin):
                 
                 # Get name from video file
                 filename = ydl.prepare_filename(info_dict)
-
-                # Read video file
-                read_file = open(filename, "r")
                 
                 # Get size of the video file in bytes and human
                 file_size_b = os.path.getsize(filename)
                 file_size_h = size(file_size_b)
 
                 mime_type = 'video/mp4'
-                media = await read_file.read()
+                media = await open(filename, "r")
 
                 # Send video file to Matrix room
                 uri = await self.client.upload_media(media, mime_type=mime_type, filename=filename)
                 await self.client.send_file(evt.room_id, url=uri, info=BaseFileInfo(mimetype=mime_type, file_name=filename, size=file_size_h, file_type=MessageType.VIDEO))
+                
                 # Remove temp video file
                 os.remove(filename)
         
