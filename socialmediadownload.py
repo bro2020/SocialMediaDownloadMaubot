@@ -178,16 +178,22 @@ class SocialMediaDownloadPlugin(Plugin):
         
         if self.config["youtube.video"]:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                # Get video file
                 info_dict = ydl.extract_info(url, download=True)
+                
+                # Get name from video file
                 filename = ydl.prepare_filename(info_dict)
+                
+                # Read video file, for calculate size
+                media = await filename.read()
 
                 # Send to Matrix room
                 await self.client.room_send(
-                    evt.room.room_id,
-                    url=url_tup,
-                    file_name=filename,
-                    info=BaseFileInfo(mimetype='video/mp4', file_name=file_name, file_type=MessageType.VIDEO)
+                    evt.room_id,
+                    info=BaseFileInfo(mimetype='video/mp4', file_name=filename, size=len(media), file_type=MessageType.VIDEO)
                 )
+                # Remove temp video file
+                os.remove(filename)
         
         if self.config["youtube.info"]:
             await evt.reply(data['title'])
