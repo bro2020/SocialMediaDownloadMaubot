@@ -8,7 +8,6 @@ import requests
 import asyncio
 import concurrent.futures
 import yt_dlp
-import os
 import hurry.filesize
 
 
