@@ -157,6 +157,7 @@ class SocialMediaDownloadPlugin(Plugin):
 
     async def handle_youtube(self, evt, url_tup):
         url = ''.join(url_tup)
+        youtube_url = url
         video_id = await self.get_youtube_video_id(url)
 
         query_url = await self.generate_youtube_query_url(url)
@@ -178,7 +179,7 @@ class SocialMediaDownloadPlugin(Plugin):
         
         if self.config["youtube.video"]:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info_dict = ydl.extract_info(url_tup, download=True)
+                info_dict = ydl.extract_info(youtube_url, download=True)
                 filename = ydl.prepare_filename(info_dict)
 
                 # Send to Matrix room
