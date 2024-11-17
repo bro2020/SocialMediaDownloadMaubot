@@ -6,7 +6,7 @@ modules:
   - instaloader
   - socialmediadownload
 main_class: socialmediadownload/SocialMediaDownloadPlugin
-soft_dependencies:
+dependencies:
   - yt-dlp>=2024.11.4
   - hurry.filesize>=0.9
 database: false
