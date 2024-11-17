@@ -186,7 +186,7 @@ class SocialMediaDownloadPlugin(Plugin):
                     evt.room.room_id,
                     url=url_tup,
                     file_name=filename,
-                    info=BaseFileInfo(mimetype='video/mp4', file_name=file_name, file_type=MessageType.VIDEO
+                    info=BaseFileInfo(mimetype='video/mp4', file_name=file_name, file_type=MessageType.VIDEO)
                 )
         
         if self.config["youtube.info"]:
