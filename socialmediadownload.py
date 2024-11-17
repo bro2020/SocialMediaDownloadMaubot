@@ -168,21 +168,26 @@ class SocialMediaDownloadPlugin(Plugin):
         response_text = await response.read()
         data = json.loads(response_text.decode())
 
+        ydl_opts = {
+            'outtmpl': '%(id)s.%(ext)s',
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'geo-bypass': True,
+            'nocheckcertificate': True,
+            'ignoreerrors': False
+        }
+        
         if self.config["youtube.video"]:
-            try:
-                with yt_dlp.YoutubeDL() as ydl:
-                    info_dict = ydl.extract_info(url_tup, download=True)
-                    filename = ydl.prepare_filename(info_dict)
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info_dict = ydl.extract_info(url_tup, download=True)
+                filename = ydl.prepare_filename(info_dict)
 
-                    # Send to Matrix room
-                    await self.client.room_send(
-                        evt.room.room_id,
-                        "m.file",
-                        {"body": "Downloaded video"},
-                        {"file": filename}
-                    )
-            except Exception as e:
-                await evt.reply(f"Error while loading: {e}")
+                # Send to Matrix room
+                await self.client.room_send(
+                    evt.room.room_id,
+                    url=url_tup,
+                    file_name=filename,
+                    info=BaseFileInfo(mimetype='video/mp4', file_name=file_name, file_type=MessageType.VIDEO
+                )
         
         if self.config["youtube.info"]:
             await evt.reply(data['title'])
