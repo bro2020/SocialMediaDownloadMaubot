@@ -168,6 +168,15 @@ class SocialMediaDownloadPlugin(Plugin):
         }
         
         if self.config["youtube.video"]:
+            thumbnail_link = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+            thumbnail_response = await self.http.get(thumbnail_link)
+            if thumbnail_response.status != 200:
+                self.log.warning(f"Unexpected status fetching image {thumbnail_link}: {thumbnail_response.status}")
+                return
+            thumbnail = await thumbnail_response.read()
+            thumbnail_filename = f"{video_id}.jpg"
+            thumbnail_uri = await self.client.upload_media(thumbnail, mime_type='image/jpeg', filename=thumbnail_filename)
+            
             try:
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     # Set slave variables
@@ -188,7 +197,14 @@ class SocialMediaDownloadPlugin(Plugin):
 
                     # Upload the video file to the Matrix server and send it to the room
                     uri = await self.client.upload_media(media, mime_type=mime_type, filename=filename)
-                    await self.client.send_file(evt.room_id, url=uri, info=BaseFileInfo(mimetype=mime_type, size=len(media)), file_name=filename, file_type=MessageType.VIDEO)
+                    await self.client.send_file(
+                        evt.room_id,
+                        url=uri,
+                        info=BaseFileInfo(mimetype=mime_type, size=len(media)),
+                        file_name=filename,
+                        file_type=MessageType.VIDEO,
+                        thumbnail_url=thumbnail_uri
+                    )
                 
                     # Remove temp video file
                     os.remove(filename)
