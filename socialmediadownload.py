@@ -198,7 +198,7 @@ class SocialMediaDownloadPlugin(Plugin):
 
                 # Send video file to Matrix room
                 uri = await self.client.upload_media(video_file, mime_type=mime_type, filename=filename)
-                await self.client.send_file(evt.room_id, url=uri, info=BaseFileInfo(mimetype=mime_type, size=file_size_b, file_name=file_name, file_type=MessageType.VIDEO)
+                await self.client.send_file(evt.room_id, url=uri, info=BaseFileInfo(mimetype=mime_type, size=file_size_b), file_name=filename, file_type=MessageType.VIDEO)
                 
                 # Remove temp video file
                 os.remove(filename)
