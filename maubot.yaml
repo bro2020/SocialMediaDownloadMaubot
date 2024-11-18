@@ -8,8 +8,6 @@ modules:
 main_class: socialmediadownload/SocialMediaDownloadPlugin
 dependencies:
   - yt-dlp>=2024.11.4
-  - hurry.filesize>=0.9
-  - aiofile>=3.9.0
 database: false
 config: true
 extra_files:
