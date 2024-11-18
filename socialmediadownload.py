@@ -20,6 +20,7 @@ from mautrix.util.config import BaseProxyConfig, ConfigUpdateHelper
 from maubot import Plugin, MessageEvent
 from maubot.handlers import event
 from hurry.filesize import size
+from aiofile import async_open
 
 class Config(BaseProxyConfig):
     def do_update(self, helper: ConfigUpdateHelper) -> None:
@@ -192,11 +193,12 @@ class SocialMediaDownloadPlugin(Plugin):
                 file_size_h = size(file_size_b)
 
                 mime_type = 'video/mp4'
-                media = open(filename, "rb")
+                video_file = async_open(filename, "rb")
+                media = await video_file.read()
 
                 # Send video file to Matrix room
-                uri = await self.client.upload_media(media, mime_type=mime_type, filename=filename)
-                await self.client.send_file(evt.room_id, url=uri, info=BaseFileInfo(mimetype=mime_type, size=len(media)), file_name=file_name, file_type=MessageType.VIDEO)
+                uri = await self.client.upload_media(video_file, mime_type=mime_type, filename=filename)
+                await self.client.send_file(evt.room_id, url=uri, info=BaseFileInfo(mimetype=mime_type, size=file_size_b, file_name=file_name, file_type=MessageType.VIDEO)
                 
                 # Remove temp video file
                 os.remove(filename)
