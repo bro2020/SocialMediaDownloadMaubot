@@ -193,7 +193,7 @@ class SocialMediaDownloadPlugin(Plugin):
                 file_size_h = size(file_size_b)
 
                 mime_type = 'video/mp4'
-                video_file = open(filename, "rb")
+                video_file = await open(filename, "rb")
                 media = await video_file.read()
 
                 # Send video file to Matrix room
