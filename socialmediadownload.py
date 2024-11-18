@@ -173,8 +173,8 @@ class SocialMediaDownloadPlugin(Plugin):
         data = json.loads(response_text.decode())
 
         ydl_opts = {
-            'outtmpl': '/tmp/%(title)s.%(ext)s',
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'outtmpl': '/tmp/%(id)s.%(ext)s',
+            'format': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             'geo-bypass': True,
             'nocheckcertificate': True,
             'ignoreerrors': False
