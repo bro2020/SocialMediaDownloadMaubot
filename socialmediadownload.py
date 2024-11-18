@@ -178,7 +178,7 @@ class SocialMediaDownloadPlugin(Plugin):
         }
         
         if self.config["youtube.video"]:
-            await with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            async with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 # Set slave variables
                 mime_type = 'video/mp4'
                 
