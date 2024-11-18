@@ -13,3 +13,8 @@ Choose what to download by configuring the plugin.
 ## Installation
 
 Download the latest .mbp from the Release section and add it as plugin in the Maubot Manager.
+
+*To download videos from* **youtube**, *the* `yt-dlp` *module must be installed on the maubot instance*
+```
+pip install yt-dlp
+```
