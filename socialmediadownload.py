@@ -158,16 +158,6 @@ class SocialMediaDownloadPlugin(Plugin):
 
     async def handle_youtube(self, evt, url_tup):
         url = ''.join(url_tup)
-        video_id = await self.get_youtube_video_id(url)
-
-        query_url = await self.generate_youtube_query_url(url)
-        response = await self.http.get(query_url)
-        if response.status != 200:
-            self.log.warning(f"Unexpected status fetching video title {query_url}: {response.status}")
-            return
-
-        response_text = await response.read()
-        data = json.loads(response_text.decode())
 
         ydl_opts = {
             'outtmpl': '/tmp/%(title)s.%(ext)s',
@@ -178,29 +168,45 @@ class SocialMediaDownloadPlugin(Plugin):
         }
         
         if self.config["youtube.video"]:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                # Set slave variables
-                mime_type = 'video/mp4'
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    # Set slave variables
+                    mime_type = 'video/mp4'
                 
-                # Get video file
-                info_dict = ydl.extract_info(url, download=True)
+                    # Get video file
+                    info_dict = ydl.extract_info(url, download=True)
                 
-                # Get name from video file
-                filename = ydl.prepare_filename(info_dict)
+                    # Get name from video file
+                    filename = ydl.prepare_filename(info_dict)
                 
-                # Get size of the video file in bytes
-                file_size_b = os.path.getsize(filename)
+                    # Get size of the video file in bytes
+                    file_size_b = os.path.getsize(filename)
 
-                # Open and read video file
-                video_file = open(filename, "rb")
-                media = video_file.read()
+                    # Open and read video file
+                    video_file = open(filename, "rb")
+                    media = video_file.read()
 
-                # Upload the video file to the Matrix server and send it to the room
-                uri = await self.client.upload_media(media, mime_type=mime_type, filename=filename)
-                await self.client.send_file(evt.room_id, url=uri, info=BaseFileInfo(mimetype=mime_type, size=len(media)), file_name=filename, file_type=MessageType.VIDEO)
+                    # Upload the video file to the Matrix server and send it to the room
+                    uri = await self.client.upload_media(media, mime_type=mime_type, filename=filename)
+                    await self.client.send_file(evt.room_id, url=uri, info=BaseFileInfo(mimetype=mime_type, size=len(media)), file_name=filename, file_type=MessageType.VIDEO)
                 
+                    # Remove temp video file
+                    os.remove(filename)
+            except Exception as e:
                 # Remove temp video file
                 os.remove(filename)
+                await evt.reply(f"Плагіну не вдалось завантажити або відвантажити відео з помилкою: {e}")
+        
+        video_id = await self.get_youtube_video_id(url)
+
+        query_url = await self.generate_youtube_query_url(url)
+        response = await self.http.get(query_url)
+        if response.status != 200:
+            self.log.warning(f"Unexpected status fetching video title {query_url}: {response.status}")
+            return
+
+        response_text = await response.read()
+        data = json.loads(response_text.decode())
         
         if self.config["youtube.info"]:
             await evt.reply(data['title'])
