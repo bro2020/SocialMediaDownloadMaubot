@@ -223,10 +223,9 @@ class SocialMediaDownloadPlugin(Plugin):
                     await self.client.send_file(
                         evt.room_id,
                         url=uri,
-                        info=BaseFileInfo(mimetype=mime_type, size=len(media)),
+                        info=BaseFileInfo(mimetype=mime_type, size=len(media), thumbnail_url=thumbnail_uri),
                         file_name=filename,
                         file_type=MessageType.VIDEO,
-                        thumbnail_url=thumbnail_uri
                     )
                 
                     # Remove temp video file
