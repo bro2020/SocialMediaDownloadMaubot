@@ -182,14 +182,6 @@ class SocialMediaDownloadPlugin(Plugin):
             filename = f"{video_id}.jpg"
             uri = await self.client.upload_media(thumbnail, mime_type='image/jpeg', filename=filename)
             await self.client.send_image(evt.room_id, url=uri, file_name=filename, info=ImageInfo(mimetype='image/jpeg'))
-
-            ydl_opts = {
-            'outtmpl': '/tmp/%(title)s.%(ext)s',
-            'format': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-            'geo-bypass': True,
-            'nocheckcertificate': True,
-            'ignoreerrors': False
-        }
         
         if self.config["youtube.video"]:
             thumbnail_link = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
@@ -200,7 +192,14 @@ class SocialMediaDownloadPlugin(Plugin):
             thumbnail = await thumbnail_response.read()
             thumbnail_filename = f"{video_id}.jpg"
             thumbnail_uri = await self.client.upload_media(thumbnail, mime_type='image/jpeg', filename=thumbnail_filename)
-            
+
+            ydl_opts = {
+                'outtmpl': '/tmp/%(title)s.%(ext)s',
+                'format': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+                'geo-bypass': True,
+                'nocheckcertificate': True,
+                'ignoreerrors': False
+            }
             try:
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     # Set slave variables
