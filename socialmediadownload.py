@@ -157,9 +157,33 @@ class SocialMediaDownloadPlugin(Plugin):
         return f"{query_url}?{query_string}"
 
     async def handle_youtube(self, evt, url_tup):
-        url = ''.join(url_tup)
+        url = ''.join(url_tup)        
+        video_id = await self.get_youtube_video_id(url)
 
-        ydl_opts = {
+        query_url = await self.generate_youtube_query_url(url)
+        response = await self.http.get(query_url)
+        if response.status != 200:
+            self.log.warning(f"Unexpected status fetching video title {query_url}: {response.status}")
+            return
+
+        response_text = await response.read()
+        data = json.loads(response_text.decode())
+        
+        if self.config["youtube.info"]:
+            await evt.reply(data['title'])
+
+        if self.config["youtube.thumbnail"]:
+            thumbnail_link = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+            response = await self.http.get(thumbnail_link)
+            if response.status != 200:
+                self.log.warning(f"Unexpected status fetching image {thumbnail_link}: {response.status}")
+                return
+            thumbnail = await response.read()
+            filename = f"{video_id}.jpg"
+            uri = await self.client.upload_media(thumbnail, mime_type='image/jpeg', filename=filename)
+            await self.client.send_image(evt.room_id, url=uri, file_name=filename, info=ImageInfo(mimetype='image/jpeg'))
+
+            ydl_opts = {
             'outtmpl': '/tmp/%(title)s.%(ext)s',
             'format': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             'geo-bypass': True,
@@ -212,31 +236,6 @@ class SocialMediaDownloadPlugin(Plugin):
                 # Remove temp video file
                 os.remove(filename)
                 await evt.reply(f"Плагіну не вдалось завантажити або відвантажити відео з помилкою: {e}")
-        
-        video_id = await self.get_youtube_video_id(url)
-
-        query_url = await self.generate_youtube_query_url(url)
-        response = await self.http.get(query_url)
-        if response.status != 200:
-            self.log.warning(f"Unexpected status fetching video title {query_url}: {response.status}")
-            return
-
-        response_text = await response.read()
-        data = json.loads(response_text.decode())
-        
-        if self.config["youtube.info"]:
-            await evt.reply(data['title'])
-
-        if self.config["youtube.thumbnail"]:
-            thumbnail_link = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
-            response = await self.http.get(thumbnail_link)
-            if response.status != 200:
-                self.log.warning(f"Unexpected status fetching image {thumbnail_link}: {response.status}")
-                return
-            thumbnail = await response.read()
-            filename = f"{video_id}.jpg"
-            uri = await self.client.upload_media(thumbnail, mime_type='image/jpeg', filename=filename)
-            await self.client.send_image(evt.room_id, url=uri, file_name=filename, info=ImageInfo(mimetype='image/jpeg'))
 
     async def handle_instagram(self, evt, url_tup):
         L = instaloader.Instaloader(user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36")
