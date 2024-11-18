@@ -9,7 +9,6 @@ import asyncio
 import concurrent.futures
 import yt_dlp
 import os
-import hurry.filesize
 
 
 from typing import Type
@@ -19,8 +18,6 @@ from mautrix.types.event.message import BaseFileInfo, Format, TextMessageEventCo
 from mautrix.util.config import BaseProxyConfig, ConfigUpdateHelper
 from maubot import Plugin, MessageEvent
 from maubot.handlers import event
-from hurry.filesize import size
-from aiofile import async_open
 
 class Config(BaseProxyConfig):
     def do_update(self, helper: ConfigUpdateHelper) -> None:
@@ -181,24 +178,26 @@ class SocialMediaDownloadPlugin(Plugin):
         }
         
         if self.config["youtube.video"]:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            await with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                # Set slave variables
+                mime_type = 'video/mp4'
+                
                 # Get video file
                 info_dict = ydl.extract_info(url, download=True)
                 
                 # Get name from video file
                 filename = ydl.prepare_filename(info_dict)
                 
-                # Get size of the video file in bytes and human
+                # Get size of the video file in bytes
                 file_size_b = os.path.getsize(filename)
-                file_size_h = size(file_size_b)
 
-                mime_type = 'video/mp4'
+                # Open and read video file
                 video_file = open(filename, "rb")
                 media = video_file.read()
 
-                # Send video file to Matrix room
+                # Upload the video file to the Matrix server and send it to the room
                 uri = await self.client.upload_media(media, mime_type=mime_type, filename=filename)
-                await self.client.send_file(evt.room_id, url=uri, info=BaseFileInfo(mimetype=mime_type, size=file_size_b), file_name=filename, file_type=MessageType.VIDEO)
+                await self.client.send_file(evt.room_id, url=uri, info=BaseFileInfo(mimetype=mime_type, size=len(media)), file_name=filename, file_type=MessageType.VIDEO)
                 
                 # Remove temp video file
                 os.remove(filename)
