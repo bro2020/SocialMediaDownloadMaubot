@@ -172,11 +172,6 @@ class SocialMediaDownloadPlugin(Plugin):
 
             ydl_opts = {
                 'outtmpl': '%(title)s.%(ext)s',
-                'paths': {
-                    'default': '/tmp',
-                    'home': '/tmp',
-                    'temp': '/tmp'
-                },
                 'format': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
                 'geo-bypass': True,
                 'nocheckcertificate': True,
@@ -215,7 +210,7 @@ class SocialMediaDownloadPlugin(Plugin):
             except Exception as e:
                 # Remove temp video file
                 os.remove(filename)
-                await evt.reply(f"Плагіну не вдалось завантажити або відвантажити відео з помилкою: {e}")
+                await evt.reply(f"The plugin failed to load or upload the video with an error: {e}")
         
         video_id = await self.get_youtube_video_id(url)
 
