@@ -22,7 +22,7 @@ from maubot.handlers import event
 class Config(BaseProxyConfig):
     def do_update(self, helper: ConfigUpdateHelper) -> None:
         for prefix in ["reddit", "instagram", "youtube", "tiktok"]:
-            for suffix in ["enabled", "info", "image", "video", "thumbnail"]:
+            for suffix in ["enabled", "info", "image", "video", "thumbnail", "tmp_path"]:
                 helper.copy(f"{prefix}.{suffix}")
 
         helper.copy("respond_to_notice")
@@ -170,11 +170,13 @@ class SocialMediaDownloadPlugin(Plugin):
             # thumbnail_filename = f"{video_id}.jpg"
             # thumbnail_uri = await self.client.upload_media(thumbnail, mime_type='image/jpeg', filename=thumbnail_filename)
 
+            tmp_path = self.config["youtube.tmp_path"]
+
             ydl_opts = {
                 'outtmpl': '%(title)s.%(ext)s',
                 'paths': {
-                    'home': '/data/tmp',
-                    'temp': '/data/tmp'
+                    'home': tmp_path,
+                    'temp': tmp_path
                 },
                 'format': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
                 'geo-bypass': True,
@@ -193,7 +195,7 @@ class SocialMediaDownloadPlugin(Plugin):
                     filepath = ydl.prepare_filename(yt_data)
 
                     # Get file name from path video file
-                    video_name = filepath.replace("/data/tmp/", "")
+                    video_name = filepath.replace(tmp_path, "")
                 
                     # Get size of the video file in bytes
                     file_size_b = os.path.getsize(filepath)
