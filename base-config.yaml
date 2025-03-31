@@ -12,8 +12,9 @@ instagram:
 youtube:
   enabled: True
   info: True
-  thumbnail: True
+  thumbnail: False
   video: True
+  tmp_path: "/data/tmp"
 tiktok:
   enabled: True
   video: True
