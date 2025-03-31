@@ -14,7 +14,7 @@ youtube:
   info: True
   thumbnail: False
   video: True
-  tmp_path: "/data/tmp"
+  tmp_path: "/data/tmp/"
 tiktok:
   enabled: True
   video: True
