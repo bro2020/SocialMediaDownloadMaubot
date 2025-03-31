@@ -193,8 +193,7 @@ class SocialMediaDownloadPlugin(Plugin):
                     filepath = ydl.prepare_filename(yt_data)
 
                     # Get file name from path video file
-                    file_name = filepath.replace("/data/tmp", "")
-                    video_name = file_name.replace(".mp4", "")
+                    video_name = filepath.replace("/data/tmp/", "")
                 
                     # Get size of the video file in bytes
                     file_size_b = os.path.getsize(filepath)
