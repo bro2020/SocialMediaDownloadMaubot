@@ -171,7 +171,8 @@ class SocialMediaDownloadPlugin(Plugin):
             # thumbnail_uri = await self.client.upload_media(thumbnail, mime_type='image/jpeg', filename=thumbnail_filename)
 
             ydl_opts = {
-                'outtmpl': '/tmp/%(title)s.%(ext)s',
+                'outtmpl': '%(title)s.%(ext)s',
+                'paths': '/tmp',
                 'format': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
                 'geo-bypass': True,
                 'nocheckcertificate': True,
