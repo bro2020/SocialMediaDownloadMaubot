@@ -172,6 +172,10 @@ class SocialMediaDownloadPlugin(Plugin):
 
             ydl_opts = {
                 'outtmpl': '%(title)s.%(ext)s',
+                'paths': {
+                    'home': '/data/tmp',
+                    'temp': '/data/tmp'
+                },
                 'format': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
                 'geo-bypass': True,
                 'nocheckcertificate': True,
@@ -183,33 +187,37 @@ class SocialMediaDownloadPlugin(Plugin):
                     mime_type = 'video/mp4'
                 
                     # Get video file
-                    info_dict = ydl.extract_info(url, download=True)
+                    yt_data = ydl.extract_info(url, download=True)
                 
-                    # Get name from video file
-                    filename = ydl.prepare_filename(info_dict)
+                    # Get path video file
+                    filepath = ydl.prepare_filename(yt_data)
+
+                    # Get file name from path video file
+                    file_name = filepath.replace("/data/tmp", "")
+                    video_name = file_name.replace(".mp4", "")
                 
                     # Get size of the video file in bytes
-                    file_size_b = os.path.getsize(filename)
+                    file_size_b = os.path.getsize(filepath)
 
                     # Open and read video file
-                    video_file = open(filename, "rb")
+                    video_file = open(filepath, "rb")
                     media = video_file.read()
 
                     # Upload the video file to the Matrix server and send it to the room
-                    uri = await self.client.upload_media(media, mime_type=mime_type, filename=filename)
+                    uri = await self.client.upload_media(media, mime_type=mime_type, filename=video_name)
                     await self.client.send_file(
                         evt.room_id,
                         url=uri,
                         info=BaseFileInfo(mimetype=mime_type, size=len(media)),
-                        file_name=filename,
+                        file_name=video_name,
                         file_type=MessageType.VIDEO,
                     )
                 
                     # Remove temp video file
-                    os.remove(filename)
+                    os.remove(filepath)
             except Exception as e:
                 # Remove temp video file
-                os.remove(filename)
+                os.remove(filepath)
                 await evt.reply(f"The plugin failed to load or upload the video with an error: {e}")
         
         video_id = await self.get_youtube_video_id(url)
