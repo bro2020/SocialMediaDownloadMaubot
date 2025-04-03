@@ -30,7 +30,7 @@ class Config(BaseProxyConfig):
 reddit_pattern = re.compile(r"((?:https?:)?\/\/)?((?:www|m|old|nm)\.)?((?:reddit\.com|redd\.it))(\/r\/[^/]+\/(?:comments|s)\/[a-zA-Z0-9_\-]+)")
 instagram_pattern = re.compile(r"(?:https?:\/\/)?(?:www\.)?instagram\.com\/?([a-zA-Z0-9\.\_\-]+)?\/([p]+)?([reel]+)?([tv]+)?([stories]+)?\/([a-zA-Z0-9\-\_\.]+)\/?([0-9]+)?")
 youtube_pattern = re.compile(r"((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu\.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?")
-tiktok_pattern = re.compile(r"((?:https?:)?\/\/)?((?:www|m|vm)\.)?((?:tiktok\.com))(\/[@a-zA-Z0-9\-\_\.\/]+)?(\/video\/)?([a-zA-Z0-9\-\_\/]+)?")
+tiktok_pattern = re.compile(r"((?:https?:)?\/\/)?((?:www|m|vm|vt)\.)?((?:tiktok\.com))(\/[@a-zA-Z0-9\-\_\.\/]+)?(\/video\/)?([a-zA-Z0-9\-\_]+)?")
 
 
 class SocialMediaDownloadPlugin(Plugin):
@@ -115,6 +115,8 @@ class SocialMediaDownloadPlugin(Plugin):
     async def handle_tiktok(self, evt, url_tup):  
         url = ''.join(url_tup)
 
+        self.log.info(f"Info! url_tup = {url_tup}")
+
         if self.config["tiktok.video"]:
             loop = asyncio.get_running_loop()
             with concurrent.futures.ThreadPoolExecutor() as pool:
@@ -130,6 +132,10 @@ class SocialMediaDownloadPlugin(Plugin):
             
             href_values = re.findall(r'href="([^"]+)"', await response.text())
             valid_urls = [url for url in href_values if yarl.URL(url).scheme in ['http', 'https']]
+
+            if not valid_urls:
+                self.log.error(f"Error! Variable \"valid_urls\" is empty")
+
             response = await self.http.get(valid_urls[0])
             
             if response.status != 200:

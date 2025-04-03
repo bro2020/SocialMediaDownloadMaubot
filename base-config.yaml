@@ -5,13 +5,13 @@ reddit:
   video: True
 instagram:
   enabled: True
-  info: True
+  info: False
   image: True
   thumbnail: False
   video: True
 youtube:
   enabled: True
-  info: True
+  info: False
   thumbnail: False
   video: True
   tmp_path: "/data/tmp/"
