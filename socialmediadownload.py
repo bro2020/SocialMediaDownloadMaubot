@@ -9,6 +9,7 @@ import asyncio
 import concurrent.futures
 import yt_dlp
 import os
+import bs4
 
 
 from typing import Type
@@ -21,7 +22,7 @@ from maubot.handlers import event
 
 class Config(BaseProxyConfig):
     def do_update(self, helper: ConfigUpdateHelper) -> None:
-        for prefix in ["reddit", "instagram", "youtube", "tiktok"]:
+        for prefix in ["reddit", "instagram", "youtube", "tiktok", "twitter"]:
             for suffix in ["enabled", "info", "image", "video", "thumbnail", "tmp_path"]:
                 helper.copy(f"{prefix}.{suffix}")
 
@@ -31,7 +32,7 @@ reddit_pattern = re.compile(r"((?:https?:)?\/\/)?((?:www|m|old|nm)\.)?((?:reddit
 instagram_pattern = re.compile(r"(?:https?:\/\/)?(?:www\.)?instagram\.com\/?([a-zA-Z0-9\.\_\-]+)?\/([p]+)?([reel]+)?([tv]+)?([stories]+)?\/([a-zA-Z0-9\-\_\.]+)\/?([0-9]+)?")
 youtube_pattern = re.compile(r"((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu\.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?")
 tiktok_pattern = re.compile(r"((?:https?:)?\/\/)?((?:www|m|vm|vt)\.)?((?:tiktok\.com))(\/[@a-zA-Z0-9\-\_\.\/]+)?(\/video\/)?([a-zA-Z0-9\-\_]+)?")
-
+twitter_pattern = re.compile(r'(https?://(?:www\.)?(?:x\.com|twitter\.com)/[^/\s]+/status/\d+)')
 
 class SocialMediaDownloadPlugin(Plugin):
     async def start(self) -> None:
@@ -68,6 +69,11 @@ class SocialMediaDownloadPlugin(Plugin):
             await evt.mark_read()
             if self.config["tiktok.enabled"]:
                 await self.handle_tiktok(evt, url_tup)
+
+        for url in twitter_pattern.findall(evt.content.body):
+            await evt.mark_read()
+            if self.config["twitter.enabled"]:
+                await self.handle_twitter(evt, url)
 
     async def get_ttdownloader_params(self, tokensDict, url) -> list:
         cookies = {
@@ -382,3 +388,56 @@ class SocialMediaDownloadPlugin(Plugin):
             elif self.config["reddit.image"] or self.config["reddit.video"]:
                 self.log.warning(f"Unknown media type {query_url}: {mime_type}")
                 return
+
+    async def handle_twitter(self, evt: MessageEvent, url: str) -> None:
+        if self.config["twitter.video"]:
+            try:
+                api_url = f"https://twitsave.com/info?url={url}"
+
+                response = requests.get(api_url)
+                if response.status_code != 200:
+                    self.log.warning(f"Twitsave error: {response.status_code}")
+                    return
+
+                data = bs4.BeautifulSoup(response.text, "html.parser")
+
+                download_button = data.find_all("div", class_="origin-top-right")[0]
+                quality_buttons = download_button.find_all("a")
+                if not quality_buttons:
+                    self.log.warning("Video not found on 'twitsave'")
+                    return
+                highest_quality_url = quality_buttons[0].get("href")
+
+                raw_name = data.find_all("div", class_="leading-tight")[0] \
+                            .find_all("p", class_="m-2")[0].text
+                file_name = re.sub(r"[^a-zA-Z0-9]+", ' ', raw_name).strip()
+
+                if not file_name:
+                    match = re.search(r'/status/(\d+)', url)
+                    tweet_id = match.group(1) if match else "twitter_video"
+                    file_name = f"twitter_{tweet_id}"
+
+                file_name += ".mp4"
+
+                response = await self.http.get(highest_quality_url)
+                if response.status != 200:
+                    self.log.warning(f"Failed download video: {response.status}")
+                    return
+
+                media = await response.read()
+                mime_type = 'video/mp4'
+
+                # Відправляємо в чат
+                uri = await self.client.upload_media(media, mime_type=mime_type, filename=file_name)
+                await self.client.send_file(
+                    evt.room_id,
+                    url=uri,
+                    info=BaseFileInfo(mimetype=mime_type, size=len(media)),
+                    file_name=file_name,
+                    file_type=MessageType.VIDEO
+                )
+
+                self.log.info(f"Sent Twitter video: {file_name}")
+
+            except Exception as e:
+                self.log.warning(f"Error handle_twitter: {e}")

@@ -1,6 +1,6 @@
 maubot: 0.1.0
 id: me.gogel.maubot.socialmediadownload
-version: 1.4.6
+version: 1.4.7
 license: MIT
 modules:
   - instaloader
@@ -8,6 +8,7 @@ modules:
 main_class: socialmediadownload/SocialMediaDownloadPlugin
 dependencies:
   - yt-dlp>=2025.3.31
+  - beautifulsoup4
 database: false
 config: true
 extra_files:

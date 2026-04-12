@@ -18,3 +18,8 @@ Download the latest .mbp from the Release section and add it as plugin in the Ma
 ```
 pip install yt-dlp
 ```
+
+*To download videos from* **twitter(x.com)**, *the* `beautifulsoup4` *module must be installed on the maubot instance*
+```
+pip install beautifulsoup4
+```
