@@ -7,6 +7,7 @@ Currently supported social media platforms:
   - Instagram (Might not work anymore because Instagram has massively restricted anonymous access.)
   - YouTube
   - TikTok
+  - Twitter (x.com)
 
 Choose what to download by configuring the plugin.
 
@@ -22,4 +23,9 @@ pip install yt-dlp
 *To download videos from* **twitter(x.com)**, *the* `beautifulsoup4` *module must be installed on the maubot instance*
 ```
 pip install beautifulsoup4
+```
+
+*To download videos from* **instagram**, *the* `instaloader` *module must be installed on the maubot instance*
+```
+pip install instaloader
 ```
